@@ -1,0 +1,1917 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Finance Calculator & Decision Assistant</title>
+  <!-- Google Font: Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            fin: {
+              50: '#f0fdf4',
+              100: '#dcfce7',
+              500: '#22c55e',
+              600: '#16a34a',
+              700: '#15803d',
+              800: '#166534',
+              900: '#14532d',
+              dark: '#0b0f19',
+              card: '#111827',
+              border: '#1f2937',
+              accent: '#3b82f6',
+              accentLight: '#60a5fa',
+              amber: '#f59e0b',
+              red: '#ef4444'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    /* Custom clean scrollbar */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #0b0f19; }
+    ::-webkit-scrollbar-thumb { background: #1f2937; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #374151; }
+
+    .stat-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.25rem 0.65rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 500;
+    }
+    .grid-pattern {
+      background-size: 24px 24px;
+      background-image: linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                        linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+    }
+  </style>
+</head>
+<body class="bg-fin-dark text-gray-100 font-sans min-h-screen antialiased flex flex-col grid-pattern">
+
+  <header class="border-b border-fin-border bg-[#0e1422]/90 backdrop-blur sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="w-9 h-9 rounded-lg bg-gradient-to-tr from-emerald-500 to-blue-600 flex items-center justify-center font-bold text-white shadow-lg shadow-emerald-900/30">
+          ₹
+        </div>
+        <div>
+          <h1 class="text-base sm:text-lg font-bold tracking-tight text-white flex items-center gap-2">
+            FinanceIQ
+            <span class="text-xs bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded-full font-mono font-medium">V1 Core</span>
+          </h1>
+          <p class="text-[11px] text-gray-400">AI Finance Calculator & Decision Engine</p>
+        </div>
+      </div>
+
+      <nav class="hidden md:flex items-center space-x-1 bg-gray-900/70 p-1 rounded-xl border border-fin-border text-xs font-medium">
+        <button onclick="switchTab('emi')" id="tab-btn-emi" class="nav-tab px-3.5 py-1.5 rounded-lg text-white bg-blue-600 transition">EMI & Loan</button>
+        <button onclick="switchTab('pvfv')" id="tab-btn-pvfv" class="nav-tab px-3.5 py-1.5 rounded-lg text-gray-400 hover:text-white transition">PV / FV (TVM)</button>
+        <button onclick="switchTab('dcf')" id="tab-btn-dcf" class="nav-tab px-3.5 py-1.5 rounded-lg text-gray-400 hover:text-white transition">DCF Valuation</button>
+        <button onclick="switchTab('ai')" id="tab-btn-ai" class="nav-tab px-3.5 py-1.5 rounded-lg text-emerald-400 hover:bg-emerald-950/40 transition flex items-center gap-1.5">
+          <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg> AI Assistant
+        </button>
+      </nav>
+
+      <div class="flex items-center space-x-2.5">
+        <button onclick="loadDemoData()" class="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-gray-200 border border-gray-700 rounded-lg text-xs font-medium transition flex items-center gap-1.5 shadow-sm">
+          <svg class="w-3.5 h-3.5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+          Load Demo Data
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Mobile Tab Navigation Bar -->
+  <div class="md:hidden bg-gray-900/90 border-b border-fin-border px-3 py-2 flex justify-around text-xs">
+    <button onclick="switchTab('emi')" id="m-tab-btn-emi" class="text-blue-400 font-semibold py-1 px-2">EMI</button>
+    <button onclick="switchTab('pvfv')" id="m-tab-btn-pvfv" class="text-gray-400 py-1 px-2">PV/FV</button>
+    <button onclick="switchTab('dcf')" id="m-tab-btn-dcf" class="text-gray-400 py-1 px-2">DCF</button>
+    <button onclick="switchTab('ai')" id="m-tab-btn-ai" class="text-emerald-400 py-1 px-2 flex items-center gap-1">AI</button>
+  </div>
+
+  <!-- Disclaimer Banner -->
+  <div id="demo-disclaimer-banner" class="bg-amber-950/40 border-b border-amber-800/40 text-amber-300/90 text-xs px-4 py-1.5 text-center flex items-center justify-center gap-2">
+    <svg class="w-3.5 h-3.5 text-amber-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+    <span><strong>Note:</strong> All sample figures are <em>Illustrative Demo Assumptions &mdash; Not Actual Financial Advice or Company Data</em>.</span>
+  </div>
+
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+    <!-- ========================================================================= -->
+    <!-- MODULE 1: EMI & LOAN ANALYSIS                                             -->
+    <!-- ========================================================================= -->
+    <div id="module-emi" class="tab-content space-y-6">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-2 border-b border-gray-800 pb-3">
+        <div>
+          <h2 class="text-xl font-bold text-white flex items-center gap-2">
+            <span>Loan & EMI Analysis</span>
+            <span class="text-xs font-normal text-gray-400 bg-gray-800/80 px-2.5 py-0.5 rounded border border-gray-700">Reducing-Balance Method</span>
+          </h2>
+          <p class="text-xs text-gray-400">Calculate exact Equated Monthly Installments, repayment split, and prepayment savings.</p>
+        </div>
+        <div id="emi-validation-msg" class="text-xs font-medium text-red-400 hidden"></div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <!-- Inputs Column -->
+        <div class="lg:col-span-4 bg-fin-card border border-fin-border rounded-xl p-5 shadow-lg space-y-4">
+          <div class="flex items-center justify-between border-b border-gray-800 pb-2">
+            <h3 class="font-semibold text-sm text-gray-200">Loan Parameters</h3>
+            <span class="text-[11px] text-gray-400">Monthly Rest</span>
+          </div>
+
+          <div>
+            <label class="block text-xs text-gray-300 font-medium mb-1">Loan Amount (Principal)</label>
+            <div class="relative">
+              <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400 text-sm">₹</span>
+              <input type="number" id="emi-principal" value="1000000" min="1000" step="10000" class="w-full bg-gray-900 border border-gray-700 rounded-lg pl-8 pr-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500 font-mono">
+            </div>
+            <p id="emi-principal-hint" class="text-[11px] text-gray-400 mt-1">₹10,00,000 (Ten Lakhs)</p>
+          </div>
+
+          <div>
+            <label class="block text-xs text-gray-300 font-medium mb-1">Annual Interest Rate (%)</label>
+            <div class="relative">
+              <input type="number" id="emi-rate" value="10.0" min="0" max="100" step="0.05" class="w-full bg-gray-900 border border-gray-700 rounded-lg pl-3 pr-8 py-2 text-sm text-white focus:outline-none focus:border-blue-500 font-mono">
+              <span class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 text-sm">%</span>
+            </div>
+            <p class="text-[11px] text-gray-500 mt-1">Accepts 0% for interest-free financing</p>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs text-gray-300 font-medium mb-1">Tenure</label>
+              <input type="number" id="emi-tenure" value="5" min="1" max="50" step="1" class="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500 font-mono">
+            </div>
+            <div>
+              <label class="block text-xs text-gray-300 font-medium mb-1">Tenure Unit</label>
+              <select id="emi-tenure-unit" class="w-full bg-gray-900 border border-gray-700 rounded-lg px-2.5 py-2 text-sm text-white focus:outline-none focus:border-blue-500">
+                <option value="years" selected>Years</option>
+                <option value="months">Months</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- What-If Stress Prepayment Scenario -->
+          <div class="pt-3 border-t border-gray-800/80">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs font-semibold text-emerald-400 uppercase tracking-wider flex items-center gap-1">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                What-If Prepayment
+              </span>
+              <span class="text-[10px] text-gray-400 bg-gray-800 px-1.5 py-0.5 rounded">Optional</span>
+            </div>
+            <div>
+              <label class="block text-xs text-gray-300 mb-1">Extra Monthly Prepayment</label>
+              <div class="relative">
+                <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400 text-sm">₹</span>
+                <input type="number" id="emi-prepayment" value="0" min="0" step="500" class="w-full bg-gray-900 border border-gray-700 rounded-lg pl-8 pr-3 py-1.5 text-sm text-white focus:outline-none focus:border-emerald-500 font-mono">
+              </div>
+              <p class="text-[11px] text-gray-500 mt-1">Accelerates principal reduction</p>
+            </div>
+          </div>
+
+          <button onclick="handleEmiCalculate()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-medium py-2 rounded-lg text-sm shadow transition">
+            Recalculate EMI
+          </button>
+        </div>
+
+        <!-- Output & Visualization Column -->
+        <div class="lg:col-span-8 space-y-6">
+          <!-- Summary Cards Grid -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div class="bg-fin-card border border-fin-border p-3.5 rounded-xl">
+              <span class="text-[11px] text-gray-400 uppercase tracking-wide">Monthly EMI</span>
+              <div id="res-emi-value" class="text-lg sm:text-xl font-bold font-mono text-emerald-400 mt-1">₹0</div>
+              <div id="res-emi-months" class="text-[11px] text-gray-500 mt-0.5">for 60 months</div>
+            </div>
+            <div class="bg-fin-card border border-fin-border p-3.5 rounded-xl">
+              <span class="text-[11px] text-gray-400 uppercase tracking-wide">Principal Amount</span>
+              <div id="res-emi-principal" class="text-base sm:text-lg font-semibold font-mono text-gray-100 mt-1">₹0</div>
+              <div class="text-[11px] text-gray-500 mt-0.5">Borrowed</div>
+            </div>
+            <div class="bg-fin-card border border-fin-border p-3.5 rounded-xl">
+              <span class="text-[11px] text-gray-400 uppercase tracking-wide">Total Interest</span>
+              <div id="res-emi-interest" class="text-base sm:text-lg font-semibold font-mono text-amber-400 mt-1">₹0</div>
+              <div id="res-emi-interest-ratio" class="text-[11px] text-gray-500 mt-0.5">0% of total</div>
+            </div>
+            <div class="bg-fin-card border border-fin-border p-3.5 rounded-xl">
+              <span class="text-[11px] text-gray-400 uppercase tracking-wide">Total Repayment</span>
+              <div id="res-emi-total" class="text-base sm:text-lg font-semibold font-mono text-blue-400 mt-1">₹0</div>
+              <div class="text-[11px] text-gray-500 mt-0.5">Principal + Interest</div>
+            </div>
+          </div>
+
+          <!-- Interactive Breakdown Visual & Prepayment Impact -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Graphical Breakdown -->
+            <div class="bg-fin-card border border-fin-border p-4 rounded-xl flex flex-col justify-between">
+              <div class="flex items-center justify-between mb-2">
+                <h4 class="text-xs font-semibold text-gray-300">Payment Breakdown</h4>
+                <div class="flex items-center space-x-3 text-[11px]">
+                  <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 bg-blue-500 rounded-full inline-block"></span> Principal</span>
+                  <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 bg-amber-500 rounded-full inline-block"></span> Interest</span>
+                </div>
+              </div>
+              <div class="relative py-4 flex items-center justify-center">
+                <svg id="emi-pie-chart" class="w-40 h-40 transform -rotate-90" viewBox="0 0 36 36"></svg>
+                <div class="absolute text-center">
+                  <span id="emi-pie-ratio" class="text-sm font-bold font-mono text-white">0%</span>
+                  <span class="block text-[9px] text-gray-400 uppercase">Interest Cost</span>
+                </div>
+              </div>
+              <div class="w-full bg-gray-800 rounded-full h-2 flex overflow-hidden">
+                <div id="emi-bar-principal" class="bg-blue-500 h-2 transition-all duration-500" style="width: 70%"></div>
+                <div id="emi-bar-interest" class="bg-amber-500 h-2 transition-all duration-500" style="width: 30%"></div>
+              </div>
+            </div>
+
+            <!-- Prepayment Savings Card -->
+            <div class="bg-fin-card border border-fin-border p-4 rounded-xl flex flex-col justify-between">
+              <div>
+                <h4 class="text-xs font-semibold text-emerald-400 mb-2 flex items-center gap-1.5">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                  What-If Prepayment Impact
+                </h4>
+                <div class="space-y-2 text-xs text-gray-300">
+                  <div class="flex justify-between py-1 border-b border-gray-800">
+                    <span class="text-gray-400">Revised Tenure:</span>
+                    <span id="res-whatif-tenure" class="font-mono font-medium text-white">60 months</span>
+                  </div>
+                  <div class="flex justify-between py-1 border-b border-gray-800">
+                    <span class="text-gray-400">Tenure Shortened By:</span>
+                    <span id="res-whatif-saved-months" class="font-mono font-semibold text-emerald-400">0 months</span>
+                  </div>
+                  <div class="flex justify-between py-1 border-b border-gray-800">
+                    <span class="text-gray-400">Total Interest Saved:</span>
+                    <span id="res-whatif-interest-saved" class="font-mono font-bold text-emerald-400">₹0</span>
+                  </div>
+                </div>
+              </div>
+              <div class="mt-3 p-2.5 rounded-lg bg-emerald-950/30 border border-emerald-900/50 text-[11px] text-emerald-300/90 leading-relaxed">
+                Paying an additional ₹<span id="res-whatif-amount">0</span> monthly lowers cumulative interest and accelerates debt freedom.
+              </div>
+            </div>
+          </div>
+
+          <!-- Amortization Table -->
+          <div class="bg-fin-card border border-fin-border rounded-xl p-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
+              <div>
+                <h4 class="text-xs font-semibold text-gray-200">Amortization Schedule</h4>
+                <p class="text-[11px] text-gray-500">Full monthly reducing balance schedule</p>
+              </div>
+              <div class="flex items-center space-x-2">
+                <button onclick="downloadAmortizationCSV()" class="text-[11px] bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 px-2.5 py-1 rounded transition">Export CSV</button>
+                <button onclick="toggleAmortizationRows()" id="amort-toggle-btn" class="text-[11px] bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 px-2.5 py-1 rounded transition">Show All Months</button>
+              </div>
+            </div>
+            <div class="overflow-x-auto max-h-72">
+              <table class="w-full text-left text-xs font-mono">
+                <thead class="bg-gray-900/80 text-gray-400 text-[11px] uppercase sticky top-0 border-b border-gray-800">
+                  <tr>
+                    <th class="py-2 px-3">Mo</th>
+                    <th class="py-2 px-3 text-right">Opening (₹)</th>
+                    <th class="py-2 px-3 text-right">EMI (₹)</th>
+                    <th class="py-2 px-3 text-right">Interest (₹)</th>
+                    <th class="py-2 px-3 text-right">Principal (₹)</th>
+                    <th class="py-2 px-3 text-right">Closing (₹)</th>
+                  </tr>
+                </thead>
+                <tbody id="emi-schedule-tbody" class="divide-y divide-gray-800/60 text-gray-300 text-[11px]">
+                  <!-- Injected via JavaScript -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- MODULE 2: PV / FV & TIME VALUE OF MONEY (TVM)                             -->
+    <!-- ========================================================================= -->
+    <div id="module-pvfv" class="tab-content space-y-6 hidden">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-2 border-b border-gray-800 pb-3">
+        <div>
+          <h2 class="text-xl font-bold text-white flex items-center gap-2">
+            <span>Time Value of Money (PV / FV & Annuity)</span>
+            <span class="text-xs font-normal text-gray-400 bg-gray-800/80 px-2.5 py-0.5 rounded border border-gray-700">Strict Rate Matching</span>
+          </h2>
+          <p class="text-xs text-gray-400">Discount future lump sums and evaluate ordinary annuities with precision.</p>
+        </div>
+        <div id="pvfv-validation-msg" class="text-xs font-medium text-red-400 hidden"></div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <!-- Input Configuration Card -->
+        <div class="lg:col-span-4 bg-fin-card border border-fin-border rounded-xl p-5 shadow-lg space-y-4">
+          <h3 class="font-semibold text-sm text-gray-200 border-b border-gray-800 pb-2">TVM Calculation Type</h3>
+
+          <div>
+            <label class="block text-xs text-gray-300 font-medium mb-1.5">What would you like to calculate?</label>
+            <select id="tvm-mode" onchange="handleTvmModeChange()" class="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500">
+              <option value="pv-lump">Present Value of Lump Sum (PV)</option>
+              <option value="fv-lump">Future Value of Lump Sum (FV)</option>
+              <option value="pv-annuity">Present Value of Ordinary Annuity (PV-Annuity)</option>
+              <option value="fv-annuity">Future Value of Ordinary Annuity (FV-Annuity)</option>
+            </select>
+          </div>
+
+          <!-- Dynamic Cash Flow Input Label -->
+          <div>
+            <label id="tvm-cashflow-label" class="block text-xs text-gray-300 font-medium mb-1">Future Value Amount (FV)</label>
+            <div class="relative">
+              <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400 text-sm">₹</span>
+              <input type="number" id="tvm-amount" value="100000" min="1" step="1000" class="w-full bg-gray-900 border border-gray-700 rounded-lg pl-8 pr-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500 font-mono">
+            </div>
+            <p id="tvm-amount-hint" class="text-[11px] text-gray-400 mt-1">₹1,00,000</p>
+          </div>
+
+          <div>
+            <label class="block text-xs text-gray-300 font-medium mb-1">Annual Discount / Interest Rate (%)</label>
+            <div class="relative">
+              <input type="number" id="tvm-rate" value="10.0" min="0" max="100" step="0.1" class="w-full bg-gray-900 border border-gray-700 rounded-lg pl-3 pr-8 py-2 text-sm text-white focus:outline-none focus:border-blue-500 font-mono">
+              <span class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 text-sm">%</span>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs text-gray-300 font-medium mb-1">Number of Periods</label>
+              <input type="number" id="tvm-periods" value="5" min="1" max="600" step="1" class="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500 font-mono">
+            </div>
+            <div>
+              <label class="block text-xs text-gray-300 font-medium mb-1">Frequency</label>
+              <select id="tvm-frequency" onchange="handleTvmCalculate()" class="w-full bg-gray-900 border border-gray-700 rounded-lg px-2.5 py-2 text-sm text-white focus:outline-none focus:border-blue-500">
+                <option value="annual" selected>Annual</option>
+                <option value="monthly">Monthly</option>
+              </select>
+            </div>
+          </div>
+
+          <button onclick="handleTvmCalculate()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-medium py-2 rounded-lg text-sm shadow transition">
+            Calculate TVM
+          </button>
+        </div>
+
+        <!-- TVM Output and Educational Visualization -->
+        <div class="lg:col-span-8 space-y-6">
+          <div class="bg-fin-card border border-fin-border rounded-xl p-5 shadow-lg">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-gray-800 pb-3 gap-2">
+              <div>
+                <span class="text-xs text-gray-400 uppercase tracking-wide" id="tvm-result-title">Calculated Present Value</span>
+                <div id="tvm-result-value" class="text-2xl sm:text-3xl font-bold font-mono text-emerald-400 mt-1">₹62,092</div>
+              </div>
+              <div class="text-right">
+                <span class="text-xs text-gray-400">Effective Periodic Rate</span>
+                <div id="tvm-effective-rate" class="text-sm font-semibold font-mono text-blue-400">10.00% / period</div>
+              </div>
+            </div>
+
+            <!-- Intuitive Narrative Explanation -->
+            <div class="mt-4 p-4 rounded-xl bg-gray-900/80 border border-gray-800">
+              <h4 class="text-xs font-semibold text-gray-300 uppercase tracking-wider mb-1 flex items-center gap-1.5">
+                <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                Financial Intuition
+              </h4>
+              <p id="tvm-explanation-text" class="text-xs text-gray-300 leading-relaxed">
+                At a 10.00% annual discount rate, receiving ₹1,00,000 in 5 years is economically equivalent to having ₹62,092 today in hand.
+              </p>
+            </div>
+          </div>
+
+          <!-- Cash Flow Timeline Visualizer -->
+          <div class="bg-fin-card border border-fin-border rounded-xl p-5 shadow-lg">
+            <h4 class="text-xs font-semibold text-gray-300 mb-3">Time Value Cash Flow Timeline</h4>
+            <div id="tvm-timeline-container" class="space-y-3">
+              <!-- Rendered via JS -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- MODULE 3: DCF VALUATION                                                   -->
+    <!-- ========================================================================= -->
+    <div id="module-dcf" class="tab-content space-y-6 hidden">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-2 border-b border-gray-800 pb-3">
+        <div>
+          <h2 class="text-xl font-bold text-white flex items-center gap-2">
+            <span>Discounted Cash Flow (DCF) Engine</span>
+            <span class="text-xs font-normal text-emerald-400 bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-800/50">WACC & Sensitivity</span>
+          </h2>
+          <p class="text-xs text-gray-400">Institutional 5-Year Unlevered Free Cash Flow forecast & Enterprise Valuation.</p>
+        </div>
+        <div id="dcf-validation-msg" class="text-xs font-medium text-red-400 hidden"></div>
+      </div>
+
+      <!-- DCF 3-Panel Layout: Forecast Assumptions, WACC & TV, and Valuation Summary -->
+      <div class="grid grid-cols-1 xl:grid-cols-12 gap-6">
+
+        <!-- Panel 1: Operating Assumptions (Base Year + 5-Yr Forecast) -->
+        <div class="xl:col-span-4 bg-fin-card border border-fin-border rounded-xl p-5 space-y-4">
+          <div class="flex items-center justify-between border-b border-gray-800 pb-2">
+            <h3 class="font-semibold text-sm text-gray-200">Operating Forecast (₹ Cr)</h3>
+            <span class="text-[11px] text-gray-400">5-Yr Horizon</span>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs text-gray-300 mb-1">Base Revenue</label>
+              <input type="number" id="dcf-base-rev" value="1000" min="1" step="10" class="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-1.5 text-xs text-white font-mono">
+            </div>
+            <div>
+              <label class="block text-xs text-gray-300 mb-1">Rev Growth (%)</label>
+              <input type="number" id="dcf-growth" value="10.0" min="-50" max="100" step="0.5" class="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-1.5 text-xs text-white font-mono">
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs text-gray-300 mb-1">EBITDA Margin (%)</label>
+              <input type="number" id="dcf-ebitda-margin" value="20.0" min="0" max="100" step="0.5" class="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-1.5 text-xs text-white font-mono">
+            </div>
+            <div>
+              <label class="block text-xs text-gray-300 mb-1">D&A (₹ Cr/yr)</label>
+              <input type="number" id="dcf-dna" value="40" min="0" step="5" class="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-1.5 text-xs text-white font-mono">
+            </div>
+          </div>
+
+          <div class="grid grid-cols-3 gap-2">
+            <div>
+              <label class="block text-[11px] text-gray-300 mb-1">Tax Rate (%)</label>
+              <input type="number" id="dcf-tax-rate" value="25.0" min="0" max="100" step="1" class="w-full bg-gray-900 border border-gray-700 rounded-lg px-2 py-1.5 text-xs text-white font-mono">
+            </div>
+            <div>
+              <label class="block text-[11px] text-gray-300 mb-1">Capex (₹ Cr)</label>
+              <input type="number" id="dcf-capex" value="50" min="0" step="5" class="w-full bg-gray-900 border border-gray-700 rounded-lg px-2 py-1.5 text-xs text-white font-mono">
+            </div>
+            <div>
+              <label class="block text-[11px] text-gray-300 mb-1">Δ NWC (₹ Cr)</label>
+              <input type="number" id="dcf-nwc" value="20" step="5" class="w-full bg-gray-900 border border-gray-700 rounded-lg px-2 py-1.5 text-xs text-white font-mono">
+            </div>
+          </div>
+
+          <!-- WACC Section -->
+          <div class="pt-3 border-t border-gray-800 space-y-3">
+            <div class="flex items-center justify-between">
+              <h4 class="text-xs font-semibold text-blue-400 uppercase tracking-wider">WACC Inputs</h4>
+              <span id="dcf-calc-wacc-badge" class="text-xs font-mono font-bold text-emerald-400 bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-800">WACC: 10.50%</span>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block text-[11px] text-gray-400 mb-1">Cost of Equity (%)</label>
+                <input type="number" id="dcf-ke" value="12.0" min="0" max="50" step="0.25" class="w-full bg-gray-900 border border-gray-700 rounded-lg px-2.5 py-1.5 text-xs text-white font-mono">
+              </div>
+              <div>
+                <label class="block text-[11px] text-gray-400 mb-1">After-Tax Debt (%)</label>
+                <input type="number" id="dcf-kd" value="7.0" min="0" max="50" step="0.25" class="w-full bg-gray-900 border border-gray-700 rounded-lg px-2.5 py-1.5 text-xs text-white font-mono">
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block text-[11px] text-gray-400 mb-1">Market Cap E (₹ Cr)</label>
+                <input type="number" id="dcf-eq-val" value="700" min="1" step="50" class="w-full bg-gray-900 border border-gray-700 rounded-lg px-2.5 py-1.5 text-xs text-white font-mono">
+              </div>
+              <div>
+                <label class="block text-[11px] text-gray-400 mb-1">Debt Value D (₹ Cr)</label>
+                <input type="number" id="dcf-debt-val" value="300" min="0" step="50" class="w-full bg-gray-900 border border-gray-700 rounded-lg px-2.5 py-1.5 text-xs text-white font-mono">
+              </div>
+            </div>
+          </div>
+
+          <!-- Terminal Value Parameters -->
+          <div class="pt-3 border-t border-gray-800 space-y-3">
+            <h4 class="text-xs font-semibold text-amber-400 uppercase tracking-wider">Terminal Value Method</h4>
+            <div class="flex items-center space-x-4 text-xs text-gray-300">
+              <label class="flex items-center gap-1.5 cursor-pointer">
+                <input type="radio" name="dcf-tv-method" value="gordon" checked onchange="toggleTvInputs()">
+                <span>Gordon Growth</span>
+              </label>
+              <label class="flex items-center gap-1.5 cursor-pointer">
+                <input type="radio" name="dcf-tv-method" value="exit" onchange="toggleTvInputs()">
+                <span>Exit Multiple</span>
+              </label>
+            </div>
+
+            <div id="tv-gordon-box">
+              <label class="block text-[11px] text-gray-400 mb-1">Terminal Growth Rate 'g' (%) &mdash; <span class="text-amber-400">Must be &lt; WACC</span></label>
+              <input type="number" id="dcf-term-growth" value="3.0" min="0" max="15" step="0.25" class="w-full bg-gray-900 border border-gray-700 rounded-lg px-2.5 py-1.5 text-xs text-white font-mono">
+            </div>
+
+            <div id="tv-exit-box" class="hidden">
+              <label class="block text-[11px] text-gray-400 mb-1">Exit EV / EBITDA Multiple (x)</label>
+              <input type="number" id="dcf-exit-mult" value="10.0" min="1" max="50" step="0.5" class="w-full bg-gray-900 border border-gray-700 rounded-lg px-2.5 py-1.5 text-xs text-white font-mono">
+            </div>
+
+            <div>
+              <label class="block text-[11px] text-gray-400 mb-1">Net Debt (₹ Cr) &mdash; <span class="text-gray-500">Debt minus Cash</span></label>
+              <input type="number" id="dcf-net-debt" value="150" step="25" class="w-full bg-gray-900 border border-gray-700 rounded-lg px-2.5 py-1.5 text-xs text-white font-mono">
+            </div>
+          </div>
+
+          <button onclick="handleDcfCalculate()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-medium py-2 rounded-lg text-xs shadow transition">
+            Run DCF Valuation
+          </button>
+        </div>
+
+        <!-- Panel 2 & 3: Forecast Table & Output Results -->
+        <div class="xl:col-span-8 space-y-6">
+          <!-- Top Valuation Summary Badges -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div class="bg-fin-card border border-fin-border p-3.5 rounded-xl">
+              <span class="text-[11px] text-gray-400 uppercase">PV of 5-Yr FCF</span>
+              <div id="res-dcf-pv-fcf" class="text-base sm:text-lg font-bold font-mono text-white mt-1">₹0 Cr</div>
+              <div id="res-dcf-pv-fcf-pct" class="text-[11px] text-gray-500 mt-0.5">0% of EV</div>
+            </div>
+            <div class="bg-fin-card border border-fin-border p-3.5 rounded-xl">
+              <span class="text-[11px] text-gray-400 uppercase">PV of Terminal Value</span>
+              <div id="res-dcf-pv-tv" class="text-base sm:text-lg font-bold font-mono text-amber-400 mt-1">₹0 Cr</div>
+              <div id="res-dcf-pv-tv-pct" class="text-[11px] text-gray-500 mt-0.5">0% of EV</div>
+            </div>
+            <div class="bg-fin-card border border-fin-border p-3.5 rounded-xl">
+              <span class="text-[11px] text-gray-400 uppercase">Enterprise Value</span>
+              <div id="res-dcf-ev" class="text-base sm:text-lg font-bold font-mono text-blue-400 mt-1">₹0 Cr</div>
+              <div class="text-[11px] text-gray-500 mt-0.5">Firm Value</div>
+            </div>
+            <div class="bg-fin-card border border-emerald-900/60 p-3.5 rounded-xl bg-emerald-950/20">
+              <span class="text-[11px] text-emerald-400 font-semibold uppercase">Implied Equity Value</span>
+              <div id="res-dcf-equity-val" class="text-lg sm:text-xl font-bold font-mono text-emerald-300 mt-1">₹0 Cr</div>
+              <div class="text-[11px] text-emerald-400/80 mt-0.5">EV less Net Debt</div>
+            </div>
+          </div>
+
+          <!-- 5-Year Unlevered Free Cash Flow Schedule -->
+          <div class="bg-fin-card border border-fin-border rounded-xl p-4">
+            <div class="flex items-center justify-between mb-2">
+              <div>
+                <h4 class="text-xs font-semibold text-gray-200">5-Year Unlevered Free Cash Flow Schedule</h4>
+                <p class="text-[11px] text-gray-500">NOPAT + D&A &minus; Capex &minus; ΔNWC (All numbers in ₹ Crore)</p>
+              </div>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-right text-xs font-mono">
+                <thead class="bg-gray-900/90 text-gray-400 text-[11px] uppercase border-b border-gray-800">
+                  <tr>
+                    <th class="py-2 px-2.5 text-left">Metric (₹ Cr)</th>
+                    <th class="py-2 px-2.5">Base</th>
+                    <th class="py-2 px-2.5 text-blue-400">Year 1</th>
+                    <th class="py-2 px-2.5 text-blue-400">Year 2</th>
+                    <th class="py-2 px-2.5 text-blue-400">Year 3</th>
+                    <th class="py-2 px-2.5 text-blue-400">Year 4</th>
+                    <th class="py-2 px-2.5 text-blue-400">Year 5</th>
+                  </tr>
+                </thead>
+                <tbody id="dcf-forecast-tbody" class="divide-y divide-gray-800/60 text-gray-300 text-xs">
+                  <!-- Generated via dcf.js logic -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Sensitivity Analysis Table -->
+          <div class="bg-fin-card border border-fin-border rounded-xl p-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-2 gap-1">
+              <div>
+                <h4 class="text-xs font-semibold text-gray-200">Valuation Sensitivity: WACC vs. Terminal Growth</h4>
+                <p class="text-[11px] text-gray-500">Implied Enterprise Value (₹ Cr) across different capital costs</p>
+              </div>
+              <span class="text-[10px] text-amber-400 font-mono bg-amber-950/40 px-2 py-0.5 rounded border border-amber-900/50">Terminal Growth &lt; WACC strictly validated</span>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-center text-xs font-mono border-collapse">
+                <tbody id="dcf-sensitivity-tbody">
+                  <!-- Generated via dcf.js -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- MODULE 4: AI FINANCE DECISION ASSISTANT                                   -->
+    <!-- ========================================================================= -->
+    <div id="module-ai" class="tab-content space-y-6 hidden">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-2 border-b border-gray-800 pb-3">
+        <div>
+          <h2 class="text-xl font-bold text-white flex items-center gap-2">
+            <span>AI Finance Decision Assistant</span>
+            <span class="text-xs font-medium text-emerald-400 bg-emerald-950/80 px-2.5 py-0.5 rounded border border-emerald-800/60">Local Financial Context Linked</span>
+          </h2>
+          <p class="text-xs text-gray-400">Conceptual financial analysis anchored directly to your active calculator state.</p>
+        </div>
+        <!-- Optional External Endpoint Config Toggle -->
+        <button onclick="toggleApiSettingsModal()" class="text-xs text-gray-300 hover:text-white bg-gray-800 border border-gray-700 px-3 py-1 rounded-lg flex items-center gap-1.5 transition">
+          <svg class="w-3.5 h-3.5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+          API Settings
+        </button>
+      </div>
+
+      <!-- Quick Concept Prompts -->
+      <div class="flex items-center gap-2 overflow-x-auto pb-2 text-xs">
+        <span class="text-gray-500 shrink-0 font-medium">Quick Queries:</span>
+        <button onclick="askAiPrompt('Why is my EMI this high?')" class="bg-gray-800 hover:bg-gray-700 text-gray-300 px-3 py-1 rounded-full whitespace-nowrap border border-gray-700 transition">"Why is my EMI this high?"</button>
+        <button onclick="askAiPrompt('How much interest am I paying?')" class="bg-gray-800 hover:bg-gray-700 text-gray-300 px-3 py-1 rounded-full whitespace-nowrap border border-gray-700 transition">"How much interest am I paying?"</button>
+        <button onclick="askAiPrompt('What happens if I increase my EMI with prepayments?')" class="bg-gray-800 hover:bg-gray-700 text-gray-300 px-3 py-1 rounded-full whitespace-nowrap border border-gray-700 transition">"Prepayment impact?"</button>
+        <button onclick="askAiPrompt('Explain present value in simple terms.')" class="bg-gray-800 hover:bg-gray-700 text-gray-300 px-3 py-1 rounded-full whitespace-nowrap border border-gray-700 transition">"Explain PV in simple terms"</button>
+        <button onclick="askAiPrompt('Why does higher WACC reduce DCF valuation?')" class="bg-gray-800 hover:bg-gray-700 text-gray-300 px-3 py-1 rounded-full whitespace-nowrap border border-gray-700 transition">"Why WACC reduces DCF?"</button>
+        <button onclick="askAiPrompt('Explain my DCF valuation and terminal value proportion.')" class="bg-gray-800 hover:bg-gray-700 text-gray-300 px-3 py-1 rounded-full whitespace-nowrap border border-gray-700 transition">"Explain my DCF & TV"</button>
+      </div>
+
+      <!-- Assistant Conversation & Live Context Panel -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <!-- Live State Context Feed -->
+        <div class="lg:col-span-4 bg-fin-card border border-fin-border rounded-xl p-4 h-[550px] flex flex-col justify-between">
+          <div>
+            <h3 class="text-xs font-semibold text-gray-300 uppercase tracking-wider mb-2 flex items-center justify-between">
+              <span>Active Engine Context</span>
+              <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            </h3>
+            <p class="text-[11px] text-gray-400 mb-3">Live mathematical parameters passed to the decision layer:</p>
+            <div id="ai-live-context-display" class="bg-gray-900/90 rounded-lg p-3 text-xs font-mono text-gray-300 space-y-2 border border-gray-800 overflow-y-auto max-h-[400px]">
+              <!-- Dynamically populated from JS -->
+            </div>
+          </div>
+          <div class="text-[11px] text-gray-500 pt-2 border-t border-gray-800">
+            Guaranteed Hallucination Guard: Assistant answers are strictly tied to calculated engine figures.
+          </div>
+        </div>
+
+        <!-- Chat Feed Area -->
+        <div class="lg:col-span-8 bg-fin-card border border-fin-border rounded-xl p-4 flex flex-col h-[550px]">
+          <div id="ai-chat-messages" class="flex-1 overflow-y-auto space-y-4 pr-2">
+            <!-- Initial Greeting -->
+            <div class="flex items-start gap-3">
+              <div class="w-7 h-7 rounded-lg bg-emerald-600 text-white flex items-center justify-center font-bold text-xs shrink-0">AI</div>
+              <div class="bg-gray-900 border border-gray-800 rounded-xl p-3 text-xs text-gray-200 max-w-[85%] leading-relaxed space-y-1">
+                <p class="font-semibold text-emerald-400">Welcome to your Financial Decision Assistant.</p>
+                <p>I continuously inspect your active Loan parameters, TVM discount factors, and DCF Valuation models. Ask me any conceptual question or click the quick queries above.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Chat Input Bar -->
+          <div class="mt-4 pt-3 border-t border-gray-800 flex gap-2">
+            <input type="text" id="ai-query-input" placeholder="Ask about your loans, PV/FV discount rates, or DCF valuation..." class="flex-1 bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500" onkeydown="if(event.key==='Enter') sendAiMessage()">
+            <button onclick="sendAiMessage()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-lg text-xs font-medium transition shadow flex items-center gap-1.5">
+              <span>Send</span>
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Optional Backend / Custom Proxy Settings Modal -->
+  <div id="api-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-gray-900 border border-gray-800 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
+      <div class="flex items-center justify-between border-b border-gray-800 pb-3">
+        <h3 class="text-sm font-bold text-white flex items-center gap-2">
+          <span>AI Assistant Backend Settings</span>
+        </h3>
+        <button onclick="toggleApiSettingsModal()" class="text-gray-400 hover:text-white">&times;</button>
+      </div>
+
+      <div class="text-xs text-gray-300 space-y-2">
+        <p>By default, the application runs on a <strong>Deterministic Local Knowledge Engine</strong> with no server or API required.</p>
+        <p class="text-gray-400">To route queries to a secure self-hosted LLM proxy or company backend:</p>
+      </div>
+
+      <div class="space-y-3">
+        <div>
+          <label class="block text-xs text-gray-300 mb-1">Custom Proxy / Backend URL</label>
+          <input type="text" id="ai-proxy-endpoint" placeholder="https://your-secure-backend.com/api/chat" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-blue-500">
+        </div>
+        <div>
+          <label class="block text-xs text-gray-300 mb-1">Optional Auth Header / Token (Sent to your proxy)</label>
+          <input type="password" id="ai-proxy-token" placeholder="Bearer proxy-token" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-blue-500">
+        </div>
+      </div>
+
+      <div class="flex justify-end gap-2 pt-2 border-t border-gray-800">
+        <button onclick="toggleApiSettingsModal()" class="px-3 py-1.5 rounded-lg text-xs text-gray-400 hover:text-white">Cancel</button>
+        <button onclick="saveApiSettings()" class="px-4 py-1.5 rounded-lg text-xs bg-emerald-600 hover:bg-emerald-500 text-white font-medium">Save Settings</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="border-t border-fin-border bg-gray-950 py-4 text-center text-xs text-gray-500">
+    <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
+      <div>AI Finance Calculator &amp; Decision Assistant &mdash; Fully Standalone V1 Engine</div>
+      <div class="font-mono text-[11px]">Exact Standard Reducing EMI &bull; Strict PV/FV &bull; Unlevered DCF</div>
+    </div>
+  </footer>
+
+  <!-- ========================================================================= -->
+  <!-- JAVASCRIPT FINANCIAL ENGINE & LOGIC                                       -->
+  <!-- ========================================================================= -->
+  <script>
+    /**
+     * Financial Formatter Utility
+     * Strict Indian Numbering System formatting (₹ 1,00,000 / Lakhs / Crores)
+     */
+    const FinanceFormat = {
+      // Formats currency standard
+      currency(val, decimals = 0) {
+        if (val === null || val === undefined || isNaN(val) || !isFinite(val)) return '₹0';
+        const rounded = Number(val).toFixed(decimals);
+        const parts = rounded.split('.');
+        let x = parts[0];
+        const isNeg = x.startsWith('-');
+        if (isNeg) x = x.substring(1);
+
+        let lastThree = x.substring(x.length - 3);
+        const otherNumbers = x.substring(0, x.length - 3);
+        if (otherNumbers !== '') {
+          lastThree = ',' + lastThree;
+        }
+        const res = otherNumbers.replace(/\B(?=(\d{2})+(?!\d))/g, ",") + lastThree;
+        const formatted = (isNeg ? '-' : '') + '₹' + res;
+        return parts.length > 1 && decimals > 0 ? `${formatted}.${parts[1]}` : formatted;
+      },
+
+      // Formats to Indian text scale (Lakh / Crore) for quick human intuition
+      scaleWords(val) {
+        if (isNaN(val) || !isFinite(val)) return '';
+        const absVal = Math.abs(val);
+        if (absVal >= 10000000) {
+          return `(₹${(val / 10000000).toFixed(2)} Crore)`;
+        } else if (absVal >= 100000) {
+          return `(₹${(val / 100000).toFixed(2)} Lakh)`;
+        }
+        return '';
+      },
+
+      percent(val, decimals = 2) {
+        if (val === null || val === undefined || isNaN(val) || !isFinite(val)) return '0.00%';
+        return `${Number(val).toFixed(decimals)}%`;
+      }
+    };
+
+    /**
+     * MODULE 1: EMI & LOAN MATHEMATICS ENGINE
+     */
+    const LoanEngine = {
+      /**
+       * Standard Reducing Balance Monthly EMI:
+       * EMI = P * r * (1+r)^n / ((1+r)^n - 1)
+       * Special case: If r = 0, EMI = P / n
+       */
+      calculateEMI(principal, annualRatePct, tenureMonths) {
+        if (principal <= 0 || tenureMonths <= 0) return 0;
+        if (annualRatePct <= 0) {
+          return principal / tenureMonths;
+        }
+        const r = annualRatePct / 12 / 100;
+        const n = tenureMonths;
+        const pow = Math.pow(1 + r, n);
+        const emi = principal * r * pow / (pow - 1);
+        return emi;
+      },
+
+      /**
+       * Full Month-by-Month Amortization Schedule
+       * Handles regular EMI and optional monthly extra prepayments
+       */
+      generateAmortization(principal, annualRatePct, tenureMonths, monthlyPrepayment = 0) {
+        const schedule = [];
+        const r = annualRatePct / 12 / 100;
+        const scheduledEmi = this.calculateEMI(principal, annualRatePct, tenureMonths);
+
+        let balance = principal;
+        let month = 1;
+        let totalInterestPaid = 0;
+        let totalPrincipalPaid = 0;
+
+        while (balance > 0.001 && month <= 600) { // safety cap at 50 years
+          const openingBalance = balance;
+          let interestForMonth = annualRatePct > 0 ? openingBalance * r : 0;
+          let principalForMonth = scheduledEmi - interestForMonth;
+
+          // If extra prepayment is provided
+          let actualPrepay = Math.max(0, monthlyPrepayment);
+
+          // Handle loan payoff in final period
+          if (principalForMonth + actualPrepay >= openingBalance) {
+            principalForMonth = openingBalance;
+            actualPrepay = 0;
+            const actualPayment = principalForMonth + interestForMonth;
+            balance = 0;
+
+            totalInterestPaid += interestForMonth;
+            totalPrincipalPaid += principalForMonth;
+
+            schedule.push({
+              month,
+              opening: openingBalance,
+              emi: actualPayment,
+              interest: interestForMonth,
+              principal: principalForMonth,
+              prepayment: actualPrepay,
+              closing: balance
+            });
+            break;
+          }
+
+          let totalPaidThisMonth = scheduledEmi + actualPrepay;
+          let netPrincipalPaid = principalForMonth + actualPrepay;
+          balance = openingBalance - netPrincipalPaid;
+
+          totalInterestPaid += interestForMonth;
+          totalPrincipalPaid += netPrincipalPaid;
+
+          schedule.push({
+            month,
+            opening: openingBalance,
+            emi: totalPaidThisMonth,
+            interest: interestForMonth,
+            principal: netPrincipalPaid,
+            prepayment: actualPrepay,
+            closing: balance
+          });
+
+          month++;
+        }
+
+        return {
+          schedule,
+          totalInterest: totalInterestPaid,
+          totalPrincipal: totalPrincipalPaid,
+          totalPaid: totalPrincipalPaid + totalInterestPaid,
+          payoffMonths: schedule.length
+        };
+      }
+    };
+
+    /**
+     * MODULE 2: PRESENT VALUE & FUTURE VALUE (TVM) ENGINE
+     */
+    const TvmEngine = {
+      /**
+       * Present Value of Lump Sum: PV = FV / (1+r)^n
+       */
+      calculatePV(fv, periodicRatePct, periods) {
+        if (periods === 0) return fv;
+        const r = periodicRatePct / 100;
+        if (r === 0) return fv;
+        return fv / Math.pow(1 + r, periods);
+      },
+
+      /**
+       * Future Value of Lump Sum: FV = PV * (1+r)^n
+       */
+      calculateFV(pv, periodicRatePct, periods) {
+        if (periods === 0) return pv;
+        const r = periodicRatePct / 100;
+        if (r === 0) return pv;
+        return pv * Math.pow(1 + r, periods);
+      },
+
+      /**
+       * Present Value of Ordinary Annuity:
+       * PV = PMT * [1 - (1+r)^(-n)] / r
+       * Special case r = 0: PV = PMT * n
+       */
+      calculateAnnuityPV(pmt, periodicRatePct, periods) {
+        if (periods <= 0) return 0;
+        const r = periodicRatePct / 100;
+        if (r === 0) return pmt * periods;
+        return pmt * (1 - Math.pow(1 + r, -periods)) / r;
+      },
+
+      /**
+       * Future Value of Ordinary Annuity:
+       * FV = PMT * [((1+r)^n - 1) / r]
+       * Special case r = 0: FV = PMT * n
+       */
+      calculateAnnuityFV(pmt, periodicRatePct, periods) {
+        if (periods <= 0) return 0;
+        const r = periodicRatePct / 100;
+        if (r === 0) return pmt * periods;
+        return pmt * (Math.pow(1 + r, periods) - 1) / r;
+      }
+    };
+
+    /**
+     * MODULE 3: DCF VALUATION & SENSITIVITY ENGINE
+     */
+    const DcfEngine = {
+      /**
+       * Weighted Average Cost of Capital (WACC):
+       * WACC = (E / (D+E)) * Ke + (D / (D+E)) * Kd
+       * Where Kd is provided after-tax directly.
+       */
+      calculateWACC(costOfEquityPct, afterTaxCostOfDebtPct, equityVal, debtVal) {
+        const totalCapital = equityVal + debtVal;
+        if (totalCapital <= 0) return 0;
+        const weightE = equityVal / totalCapital;
+        const weightD = debtVal / totalCapital;
+        const wacc = (weightE * (costOfEquityPct / 100)) + (weightD * (afterTaxCostOfDebtPct / 100));
+        return wacc; // decimal
+      },
+
+      /**
+       * 5-Year Unlevered Free Cash Flow Forecast
+       * EBIT = EBITDA - D&A
+       * NOPAT = EBIT * (1 - Tax Rate)
+       * FCF = NOPAT + D&A - Capex - Change in NWC
+       */
+      forecast5Years(params) {
+        const {
+          baseRevenue,
+          revGrowthPct,
+          ebitdaMarginPct,
+          dnaAnnual,
+          taxRatePct,
+          capexAnnual,
+          nwcAnnual
+        } = params;
+
+        const growth = revGrowthPct / 100;
+        const margin = ebitdaMarginPct / 100;
+        const taxRate = taxRatePct / 100;
+
+        const forecast = [];
+        let currentRev = baseRevenue;
+
+        for (let year = 1; year <= 5; year++) {
+          currentRev = currentRev * (1 + growth);
+          const ebitda = currentRev * margin;
+          const ebit = ebitda - dnaAnnual;
+          const taxesOnEbit = ebit > 0 ? ebit * taxRate : 0;
+          const nopat = ebit - taxesOnEbit;
+          const fcf = nopat + dnaAnnual - capexAnnual - nwcAnnual;
+
+          forecast.push({
+            year,
+            revenue: currentRev,
+            ebitda,
+            dna: dnaAnnual,
+            ebit,
+            tax: taxesOnEbit,
+            nopat,
+            capex: capexAnnual,
+            nwc: nwcAnnual,
+            fcf
+          });
+        }
+        return forecast;
+      },
+
+      /**
+       * Gordon Growth Terminal Value:
+       * TV = FCF_5 * (1 + g) / (WACC - g)
+       * Validation: g must be strictly less than WACC.
+       */
+      calculateGordonTV(finalFcf, waccDecimal, terminalGrowthDecimal) {
+        if (terminalGrowthDecimal >= waccDecimal) {
+          throw new Error("Terminal Growth Rate must be strictly less than WACC.");
+        }
+        const tv = (finalFcf * (1 + terminalGrowthDecimal)) / (waccDecimal - terminalGrowthDecimal);
+        return tv;
+      },
+
+      /**
+       * Exit Multiple Terminal Value:
+       * TV = EBITDA_5 * ExitMultiple
+       */
+      calculateExitTV(finalEbitda, exitMultiple) {
+        return finalEbitda * exitMultiple;
+      },
+
+      /**
+       * Complete DCF Valuation:
+       * Discount FCFs and TV at WACC back to base year.
+       */
+      runValuation(forecast, waccDecimal, terminalValue, netDebt = 0) {
+        let pvOfFcf = 0;
+        const discountedFcfs = forecast.map((f, index) => {
+          const year = index + 1;
+          const discountFactor = Math.pow(1 + waccDecimal, year);
+          const pv = f.fcf / discountFactor;
+          pvOfFcf += pv;
+          return { ...f, pv };
+        });
+
+        // Discount Terminal Value from Year 5
+        const tvDiscountFactor = Math.pow(1 + waccDecimal, 5);
+        const pvOfTV = terminalValue / tvDiscountFactor;
+
+        const enterpriseValue = pvOfFcf + pvOfTV;
+        const equityValue = enterpriseValue - netDebt;
+
+        return {
+          discountedFcfs,
+          pvOfFcf,
+          terminalValue,
+          pvOfTV,
+          enterpriseValue,
+          netDebt,
+          equityValue
+        };
+      },
+
+      /**
+       * Dynamic 5x5 WACC vs Terminal Growth Sensitivity Grid
+       */
+      generateSensitivity(finalFcf, baseWaccDecimal, baseGrowthDecimal, pvOfFcf5Year) {
+        // Range: WACC -2% to +2% in 1% steps
+        // Growth: -1% to +1% in 0.5% steps
+        const waccSteps = [-0.02, -0.01, 0, 0.01, 0.02];
+        const growthSteps = [-0.01, -0.005, 0, 0.005, 0.01];
+
+        const matrix = [];
+
+        for (const wStep of waccSteps) {
+          const rowWacc = baseWaccDecimal + wStep;
+          const row = {
+            wacc: rowWacc,
+            values: []
+          };
+
+          for (const gStep of growthSteps) {
+            const colG = baseGrowthDecimal + gStep;
+            if (colG >= rowWacc || rowWacc <= 0) {
+              row.values.push({ g: colG, ev: null, valid: false });
+            } else {
+              try {
+                const tv = (finalFcf * (1 + colG)) / (rowWacc - colG);
+                const pvTv = tv / Math.pow(1 + rowWacc, 5);
+                const ev = pvOfFcf5Year + pvTv;
+                row.values.push({ g: colG, ev, valid: true });
+              } catch (e) {
+                row.values.push({ g: colG, ev: null, valid: false });
+              }
+            }
+          }
+          matrix.push(row);
+        }
+
+        return {
+          waccList: waccSteps.map(s => baseWaccDecimal + s),
+          growthList: growthSteps.map(s => baseGrowthDecimal + s),
+          matrix
+        };
+      }
+    };
+
+    /**
+     * MODULE 4: AI FINANCE DECISION ASSISTANT (Deterministic Local Knowledge Layer)
+     * Provides instant contextual analysis anchored to actual engine variables.
+     */
+    const AiAssistantEngine = {
+      proxyEndpoint: localStorage.getItem('ai_proxy_endpoint') || '',
+      proxyToken: localStorage.getItem('ai_proxy_token') || '',
+
+      generateLocalResponse(userPrompt, activeState) {
+        const q = userPrompt.toLowerCase();
+        const emi = activeState.emi;
+        const tvm = activeState.tvm;
+        const dcf = activeState.dcf;
+
+        // 1. EMI queries
+        if (q.includes('why') && q.includes('emi') && (q.includes('high') || q.includes('cost'))) {
+          return `Your monthly EMI is ${FinanceFormat.currency(emi.emi)} on a borrowed principal of ${FinanceFormat.currency(emi.principal)} at an interest rate of ${emi.rate}%.
+Interest constitutes ${emi.interestRatio}% (${FinanceFormat.currency(emi.totalInterest)}) of your total cash outflow over ${emi.tenureMonths} months.
+Key driver: In reducing-balance loans, earlier installments are dominated by interest on the large initial principal. To lower your EMI, you must extend the tenure or negotiate a lower annual rate; to lower total cost instead, consider prepayments.`;
+        }
+
+        if (q.includes('how much interest') || q.includes('interest am i paying')) {
+          return `Across your ${emi.tenureMonths}-month tenure, you will pay a total of ${FinanceFormat.currency(emi.totalInterest)} in interest on top of the ${FinanceFormat.currency(emi.principal)} principal.
+That means for every ₹100 borrowed, you are paying ₹${((emi.totalInterest / emi.principal) * 100).toFixed(1)} in pure borrowing cost.`;
+        }
+
+        if (q.includes('prepayment') || q.includes('increase my emi')) {
+          if (emi.prepayment > 0) {
+            return `With your current monthly prepayment of ${FinanceFormat.currency(emi.prepayment)}, you save ${FinanceFormat.currency(emi.whatIfInterestSaved)} in interest and shorten your loan by ${emi.whatIfMonthsSaved} months!
+Because reducing loans compound monthly, every extra rupee prepaid goes 100% towards the principal, extinguishing all future interest on that portion.`;
+          }
+          return `Increasing your EMI or making an extra monthly prepayment of even ₹2,000–₹5,000 directly attacks the outstanding principal. This dramatically curtails the remaining tenure and can easily save 20% to 40% of cumulative interest. Try entering a value in the 'What-If Prepayment' field to see the exact saving.`;
+        }
+
+        // 2. TVM queries
+        if (q.includes('present value') && (q.includes('simple') || q.includes('explain') || q.includes('worth less'))) {
+          return `Present Value (PV) answers: "What is future money worth in today's pocket?"
+Money today is worth more than the same amount in the future due to three forces:
+1. Opportunity Cost (it can be invested to earn returns)
+2. Inflation (purchasing power erodes over time)
+3. Uncertainty/Risk (future promises carry default risk)
+In your active calculation, ₹${FinanceFormat.currency(tvm.amount)} expected in ${tvm.periods} ${tvm.frequency} periods at a ${tvm.rate}% discount rate has a current purchasing power of just ${FinanceFormat.currency(tvm.result)}.`;
+        }
+
+        // 3. DCF & WACC queries
+        if (q.includes('wacc') && (q.includes('reduce') || q.includes('higher') || q.includes('impact'))) {
+          return `WACC (Weighted Average Cost of Capital) is the denominator discount rate: PV = FCF / (1 + WACC)^t.
+Mathematically, as WACC increases, the discount factor (1 + WACC)^t surges, making future cash flows worth significantly less today.
+Financially, a higher WACC means your investors and lenders demand a higher risk premium. In your active model, WACC is ${FinanceFormat.percent(dcf.wacc * 100)}. If WACC rises by 1% to ${FinanceFormat.percent((dcf.wacc + 0.01) * 100)}, your Enterprise Value would contract meaningfully as shown in the sensitivity grid.`;
+        }
+
+        if (q.includes('terminal value') || q.includes('explain my dcf')) {
+          return `In your active DCF valuation, Enterprise Value is ${FinanceFormat.currency(dcf.enterpriseValue)} Cr:
+- Present Value of 5-Yr Forecast FCF: ${FinanceFormat.currency(dcf.pvOfFcf)} Cr (${dcf.pvFcfPct}% of EV)
+- Present Value of Terminal Value (TV): ${FinanceFormat.currency(dcf.pvOfTv)} Cr (${dcf.pvTvPct}% of EV)
+Terminal Value accounts for ${dcf.pvTvPct}% of total firm value. This is typical for steady businesses (50%–75%), but it underlines that most value lies in the perpetual future rather than near-term cash flows. This is why validating that Terminal Growth (${dcf.terminalGrowth}%) remains strictly lower than WACC (${FinanceFormat.percent(dcf.wacc * 100)}) is mathematically imperative.`;
+        }
+
+        // Fallback context summary
+        return `Based on your live figures:
+- Loan EMI is ${FinanceFormat.currency(emi.emi)}/mo with ${FinanceFormat.currency(emi.totalInterest)} total interest.
+- TVM evaluation yields ${FinanceFormat.currency(tvm.result)} at ${tvm.rate}% periodic discount.
+- DCF Implied Enterprise Value is ${FinanceFormat.currency(dcf.enterpriseValue)} Cr with a ${FinanceFormat.percent(dcf.wacc * 100)} WACC.
+Feel free to ask specific questions about any of these modules!`;
+      }
+    };
+
+    /**
+     * CENTRAL STATE MANAGEMENT
+     */
+    const AppState = {
+      emi: {
+        principal: 1000000,
+        rate: 10.0,
+        tenureMonths: 60,
+        prepayment: 0,
+        emi: 0,
+        totalInterest: 0,
+        totalPayment: 0,
+        interestRatio: 0,
+        whatIfMonthsSaved: 0,
+        whatIfInterestSaved: 0,
+        schedule: []
+      },
+      tvm: {
+        mode: 'pv-lump',
+        amount: 100000,
+        rate: 10.0,
+        periods: 5,
+        frequency: 'annual',
+        result: 0
+      },
+      dcf: {
+        baseRev: 1000,
+        revGrowth: 10.0,
+        ebitdaMargin: 20.0,
+        dna: 40,
+        taxRate: 25.0,
+        capex: 50,
+        nwc: 20,
+        costEquity: 12.0,
+        costDebt: 7.0,
+        eqVal: 700,
+        debtVal: 300,
+        tvMethod: 'gordon',
+        terminalGrowth: 3.0,
+        exitMultiple: 10.0,
+        netDebt: 150,
+        wacc: 0.105,
+        pvOfFcf: 0,
+        pvOfTv: 0,
+        enterpriseValue: 0,
+        equityValue: 0,
+        pvFcfPct: 0,
+        pvTvPct: 0
+      }
+    };
+
+    // Tab Navigation
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+      const activeContent = document.getElementById(`module-${tabId}`);
+      if (activeContent) activeContent.classList.remove('hidden');
+
+      // Update desktop tabs
+      document.querySelectorAll('.nav-tab').forEach(btn => {
+        btn.classList.remove('bg-blue-600', 'text-white');
+        btn.classList.add('text-gray-400');
+      });
+      const currentBtn = document.getElementById(`tab-btn-${tabId}`);
+      if (currentBtn) {
+        currentBtn.classList.remove('text-gray-400');
+        currentBtn.classList.add('bg-blue-600', 'text-white');
+      }
+
+      // Update mobile tabs
+      ['emi', 'pvfv', 'dcf', 'ai'].forEach(t => {
+        const mBtn = document.getElementById(`m-tab-btn-${t}`);
+        if (mBtn) {
+          if (t === tabId) {
+            mBtn.className = "text-blue-400 font-semibold py-1 px-2 border-b-2 border-blue-500";
+          } else {
+            mBtn.className = "text-gray-400 py-1 px-2";
+          }
+        }
+      });
+
+      if (tabId === 'ai') {
+        renderLiveAiContext();
+      }
+    }
+
+    /**
+     * EMI UI CONTROLLER
+     */
+    let showAllAmortRows = false;
+
+    function handleEmiCalculate() {
+      const p = parseFloat(document.getElementById('emi-principal').value);
+      const r = parseFloat(document.getElementById('emi-rate').value);
+      const tenureVal = parseFloat(document.getElementById('emi-tenure').value);
+      const tenureUnit = document.getElementById('emi-tenure-unit').value;
+      const prepayment = parseFloat(document.getElementById('emi-prepayment').value) || 0;
+
+      const errEl = document.getElementById('emi-validation-msg');
+      errEl.classList.add('hidden');
+
+      // Validation
+      if (isNaN(p) || p <= 0) {
+        errEl.innerText = "Loan Amount must be greater than zero.";
+        errEl.classList.remove('hidden');
+        return;
+      }
+      if (isNaN(r) || r < 0) {
+        errEl.innerText = "Interest Rate cannot be negative.";
+        errEl.classList.remove('hidden');
+        return;
+      }
+      if (isNaN(tenureVal) || tenureVal <= 0) {
+        errEl.innerText = "Tenure must be greater than zero.";
+        errEl.classList.remove('hidden');
+        return;
+      }
+
+      const tenureMonths = tenureUnit === 'years' ? Math.round(tenureVal * 12) : Math.round(tenureVal);
+
+      // Baseline Calculation (Without extra prepayment)
+      const baseEmi = LoanEngine.calculateEMI(p, r, tenureMonths);
+      const baseAmort = LoanEngine.generateAmortization(p, r, tenureMonths, 0);
+
+      // What-If Calculation (With extra prepayment)
+      const whatIfAmort = LoanEngine.generateAmortization(p, r, tenureMonths, prepayment);
+      const interestSaved = Math.max(0, baseAmort.totalInterest - whatIfAmort.totalInterest);
+      const monthsSaved = Math.max(0, baseAmort.payoffMonths - whatIfAmort.payoffMonths);
+
+      // Update State
+      AppState.emi = {
+        principal: p,
+        rate: r,
+        tenureMonths,
+        prepayment,
+        emi: baseEmi,
+        totalInterest: baseAmort.totalInterest,
+        totalPayment: baseAmort.totalPaid,
+        interestRatio: ((baseAmort.totalInterest / baseAmort.totalPaid) * 100).toFixed(1),
+        whatIfMonthsSaved: monthsSaved,
+        whatIfInterestSaved: interestSaved,
+        schedule: prepayment > 0 ? whatIfAmort.schedule : baseAmort.schedule
+      };
+
+      // Update DOM Badges
+      document.getElementById('emi-principal-hint').innerText = `${FinanceFormat.currency(p)} ${FinanceFormat.scaleWords(p)}`;
+      document.getElementById('res-emi-value').innerText = FinanceFormat.currency(baseEmi);
+      document.getElementById('res-emi-months').innerText = `for ${tenureMonths} months`;
+      document.getElementById('res-emi-principal').innerText = FinanceFormat.currency(p);
+      document.getElementById('res-emi-interest').innerText = FinanceFormat.currency(baseAmort.totalInterest);
+      document.getElementById('res-emi-interest-ratio').innerText = `${AppState.emi.interestRatio}% of total cost`;
+      document.getElementById('res-emi-total').innerText = FinanceFormat.currency(baseAmort.totalPaid);
+
+      // What-If Card
+      document.getElementById('res-whatif-amount').innerText = prepayment.toLocaleString('en-IN');
+      document.getElementById('res-whatif-tenure').innerText = `${whatIfAmort.payoffMonths} months (Original: ${tenureMonths})`;
+      document.getElementById('res-whatif-saved-months').innerText = `${monthsSaved} months`;
+      document.getElementById('res-whatif-interest-saved').innerText = FinanceFormat.currency(interestSaved);
+
+      // SVG Donut & Bar Charts
+      renderEmiCharts(p, baseAmort.totalInterest);
+
+      // Render Amortization Schedule
+      renderAmortizationTable(AppState.emi.schedule);
+
+      renderLiveAiContext();
+    }
+
+    function renderEmiCharts(principal, interest) {
+      const total = principal + interest;
+      if (total <= 0) return;
+      const principalPct = (principal / total) * 100;
+      const interestPct = (interest / total) * 100;
+
+      // Update Progress Bar
+      document.getElementById('emi-bar-principal').style.width = `${principalPct}%`;
+      document.getElementById('emi-bar-interest').style.width = `${interestPct}%`;
+
+      // Update Donut Chart
+      const circumference = 2 * Math.PI * 15.9155; // circumference for r=15.9155 is ~100
+      const pieSvg = document.getElementById('emi-pie-chart');
+      pieSvg.innerHTML = `
+        <circle cx="18" cy="18" r="15.9155" fill="transparent" stroke="#1f2937" stroke-width="3.5"></circle>
+        <circle cx="18" cy="18" r="15.9155" fill="transparent" stroke="#3b82f6" stroke-width="3.5"
+                stroke-dasharray="${principalPct} ${100 - principalPct}" stroke-dashoffset="0"></circle>
+        <circle cx="18" cy="18" r="15.9155" fill="transparent" stroke="#f59e0b" stroke-width="3.5"
+                stroke-dasharray="${interestPct} ${100 - interestPct}" stroke-dashoffset="-${principalPct}"></circle>
+      `;
+      document.getElementById('emi-pie-ratio').innerText = `${interestPct.toFixed(1)}%`;
+    }
+
+    function renderAmortizationTable(schedule) {
+      const tbody = document.getElementById('emi-schedule-tbody');
+      tbody.innerHTML = '';
+
+      const displayList = showAllAmortRows ? schedule : schedule.slice(0, 12);
+
+      displayList.forEach(row => {
+        const tr = document.createElement('tr');
+        tr.className = "hover:bg-gray-800/40 transition";
+        tr.innerHTML = `
+          <td class="py-1.5 px-3 font-medium text-gray-400">${row.month}</td>
+          <td class="py-1.5 px-3 text-right">${row.opening.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</td>
+          <td class="py-1.5 px-3 text-right text-emerald-400">${row.emi.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</td>
+          <td class="py-1.5 px-3 text-right text-amber-400">${row.interest.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</td>
+          <td class="py-1.5 px-3 text-right text-blue-400">${row.principal.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</td>
+          <td class="py-1.5 px-3 text-right text-gray-200">${row.closing.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      if (!showAllAmortRows && schedule.length > 12) {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td colspan="6" class="py-2 px-3 text-center text-gray-500 italic bg-gray-900/40">Showing first 12 of ${schedule.length} months. Click 'Show All Months' to expand.</td>`;
+        tbody.appendChild(tr);
+      }
+    }
+
+    function toggleAmortizationRows() {
+      showAllAmortRows = !showAllAmortRows;
+      document.getElementById('amort-toggle-btn').innerText = showAllAmortRows ? 'Show First 12' : 'Show All Months';
+      renderAmortizationTable(AppState.emi.schedule);
+    }
+
+    function downloadAmortizationCSV() {
+      if (!AppState.emi.schedule.length) return;
+      let csv = "Month,Opening Balance,Total Payment,Interest,Principal,Closing Balance\n";
+      AppState.emi.schedule.forEach(r => {
+        csv += `${r.month},${r.opening.toFixed(2)},${r.emi.toFixed(2)},${r.interest.toFixed(2)},${r.principal.toFixed(2)},${r.closing.toFixed(2)}\n`;
+      });
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Loan_Amortization_Schedule_${AppState.emi.principal}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    /**
+     * TVM UI CONTROLLER
+     */
+    function handleTvmModeChange() {
+      const mode = document.getElementById('tvm-mode').value;
+      const label = document.getElementById('tvm-cashflow-label');
+      const title = document.getElementById('tvm-result-title');
+
+      if (mode === 'pv-lump') {
+        label.innerText = "Future Value (FV) to be received";
+        title.innerText = "Calculated Present Value (PV)";
+      } else if (mode === 'fv-lump') {
+        label.innerText = "Present Value (PV) invested today";
+        title.innerText = "Calculated Future Value (FV)";
+      } else if (mode === 'pv-annuity') {
+        label.innerText = "Periodic Payment (PMT) per period";
+        title.innerText = "PV of Ordinary Annuity";
+      } else if (mode === 'fv-annuity') {
+        label.innerText = "Periodic Payment (PMT) per period";
+        title.innerText = "FV of Ordinary Annuity";
+      }
+      handleTvmCalculate();
+    }
+
+    function handleTvmCalculate() {
+      const mode = document.getElementById('tvm-mode').value;
+      const amount = parseFloat(document.getElementById('tvm-amount').value);
+      const annualRate = parseFloat(document.getElementById('tvm-rate').value);
+      const periods = parseFloat(document.getElementById('tvm-periods').value);
+      const freq = document.getElementById('tvm-frequency').value;
+
+      const errEl = document.getElementById('pvfv-validation-msg');
+      errEl.classList.add('hidden');
+
+      if (isNaN(amount) || amount <= 0) {
+        errEl.innerText = "Cash flow amount must be greater than zero.";
+        errEl.classList.remove('hidden');
+        return;
+      }
+      if (isNaN(annualRate) || annualRate < 0) {
+        errEl.innerText = "Discount/Interest rate cannot be negative.";
+        errEl.classList.remove('hidden');
+        return;
+      }
+      if (isNaN(periods) || periods <= 0) {
+        errEl.innerText = "Number of periods must be at least 1.";
+        errEl.classList.remove('hidden');
+        return;
+      }
+
+      // Convert annual rate to effective periodic rate
+      const periodicRate = freq === 'monthly' ? annualRate / 12 : annualRate;
+
+      let result = 0;
+      if (mode === 'pv-lump') {
+        result = TvmEngine.calculatePV(amount, periodicRate, periods);
+      } else if (mode === 'fv-lump') {
+        result = TvmEngine.calculateFV(amount, periodicRate, periods);
+      } else if (mode === 'pv-annuity') {
+        result = TvmEngine.calculateAnnuityPV(amount, periodicRate, periods);
+      } else if (mode === 'fv-annuity') {
+        result = TvmEngine.calculateAnnuityFV(amount, periodicRate, periods);
+      }
+
+      AppState.tvm = {
+        mode,
+        amount,
+        rate: annualRate,
+        periodicRate,
+        periods,
+        frequency: freq,
+        result
+      };
+
+      // Update UI
+      document.getElementById('tvm-amount-hint').innerText = `${FinanceFormat.currency(amount)} ${FinanceFormat.scaleWords(amount)}`;
+      document.getElementById('tvm-result-value').innerText = FinanceFormat.currency(result);
+      document.getElementById('tvm-effective-rate').innerText = `${periodicRate.toFixed(3)}% per ${freq === 'monthly' ? 'month' : 'year'}`;
+
+      // Explanation narrative
+      let explanation = "";
+      if (mode === 'pv-lump') {
+        explanation = `Receiving ${FinanceFormat.currency(amount)} in ${periods} ${freq} periods at a ${annualRate}% discount rate is economically equivalent to having ${FinanceFormat.currency(result)} today in hand.`;
+      } else if (mode === 'fv-lump') {
+        explanation = `Investing ${FinanceFormat.currency(amount)} today for ${periods} ${freq} periods at a compounding rate of ${annualRate}% will grow to ${FinanceFormat.currency(result)}.`;
+      } else if (mode === 'pv-annuity') {
+        explanation = `Receiving a regular stream of ${FinanceFormat.currency(amount)} at the end of each ${freq} period for ${periods} periods is worth ${FinanceFormat.currency(result)} today at a ${annualRate}% discount rate.`;
+      } else if (mode === 'fv-annuity') {
+        explanation = `Depositing ${FinanceFormat.currency(amount)} at each period for ${periods} periods compounding at ${annualRate}% accumulates to ${FinanceFormat.currency(result)}.`;
+      }
+      document.getElementById('tvm-explanation-text').innerText = explanation;
+
+      renderTvmTimeline(mode, amount, result, periods, freq);
+      renderLiveAiContext();
+    }
+
+    function renderTvmTimeline(mode, amount, result, periods, freq) {
+      const container = document.getElementById('tvm-timeline-container');
+      container.innerHTML = '';
+
+      const maxPeriodsToShow = Math.min(periods, 6);
+      const isLump = mode.includes('lump');
+
+      const wrapper = document.createElement('div');
+      wrapper.className = "flex items-center justify-between relative py-6 px-4 bg-gray-900/60 rounded-xl overflow-x-auto";
+
+      for (let i = 0; i <= maxPeriodsToShow; i++) {
+        const step = document.createElement('div');
+        step.className = "flex flex-col items-center relative z-10 min-w-[70px]";
+
+        let label = `t=${i}`;
+        let subText = "₹0";
+
+        if (i === 0) {
+          label = "Today (t=0)";
+          subText = mode.startsWith('pv') ? FinanceFormat.currency(result) : (isLump ? FinanceFormat.currency(amount) : "₹0");
+        } else if (i === maxPeriodsToShow) {
+          label = `Period ${periods}`;
+          subText = mode.startsWith('fv') ? FinanceFormat.currency(result) : (isLump ? FinanceFormat.currency(amount) : FinanceFormat.currency(amount));
+        } else {
+          subText = isLump ? "—" : FinanceFormat.currency(amount);
+        }
+
+        step.innerHTML = `
+          <div class="w-7 h-7 rounded-full bg-gray-800 border-2 ${i === 0 || i === maxPeriodsToShow ? 'border-emerald-500 text-emerald-400 font-bold' : 'border-gray-700 text-gray-400'} flex items-center justify-center text-xs">
+            ${i === maxPeriodsToShow && periods > 6 ? 'n' : i}
+          </div>
+          <span class="text-[10px] text-gray-400 mt-1">${label}</span>
+          <span class="text-[11px] font-mono text-gray-200 font-medium">${subText}</span>
+        `;
+        wrapper.appendChild(step);
+      }
+
+      container.appendChild(wrapper);
+    }
+
+    /**
+     * DCF UI CONTROLLER
+     */
+    function toggleTvInputs() {
+      const method = document.querySelector('input[name="dcf-tv-method"]:checked').value;
+      if (method === 'gordon') {
+        document.getElementById('tv-gordon-box').classList.remove('hidden');
+        document.getElementById('tv-exit-box').classList.add('hidden');
+      } else {
+        document.getElementById('tv-gordon-box').classList.add('hidden');
+        document.getElementById('tv-exit-box').classList.remove('hidden');
+      }
+      handleDcfCalculate();
+    }
+
+    function handleDcfCalculate() {
+      const baseRev = parseFloat(document.getElementById('dcf-base-rev').value);
+      const revGrowth = parseFloat(document.getElementById('dcf-growth').value);
+      const ebitdaMargin = parseFloat(document.getElementById('dcf-ebitda-margin').value);
+      const dna = parseFloat(document.getElementById('dcf-dna').value);
+      const taxRate = parseFloat(document.getElementById('dcf-tax-rate').value);
+      const capex = parseFloat(document.getElementById('dcf-capex').value);
+      const nwc = parseFloat(document.getElementById('dcf-nwc').value);
+
+      const ke = parseFloat(document.getElementById('dcf-ke').value);
+      const kd = parseFloat(document.getElementById('dcf-kd').value);
+      const eqVal = parseFloat(document.getElementById('dcf-eq-val').value);
+      const debtVal = parseFloat(document.getElementById('dcf-debt-val').value);
+
+      const tvMethod = document.querySelector('input[name="dcf-tv-method"]:checked').value;
+      const termGrowth = parseFloat(document.getElementById('dcf-term-growth').value);
+      const exitMult = parseFloat(document.getElementById('dcf-exit-mult').value);
+      const netDebt = parseFloat(document.getElementById('dcf-net-debt').value) || 0;
+
+      const errEl = document.getElementById('dcf-validation-msg');
+      errEl.classList.add('hidden');
+
+      // Validations
+      if (isNaN(baseRev) || baseRev <= 0) {
+        errEl.innerText = "Base Revenue must be greater than zero.";
+        errEl.classList.remove('hidden');
+        return;
+      }
+      if (isNaN(taxRate) || taxRate < 0 || taxRate > 100) {
+        errEl.innerText = "Tax Rate must be between 0% and 100%.";
+        errEl.classList.remove('hidden');
+        return;
+      }
+      if (isNaN(eqVal) || eqVal <= 0 || isNaN(debtVal) || debtVal < 0) {
+        errEl.innerText = "Capital structure values (E and D) must be positive.";
+        errEl.classList.remove('hidden');
+        return;
+      }
+
+      // WACC Calculation
+      const waccDecimal = DcfEngine.calculateWACC(ke, kd, eqVal, debtVal);
+      const waccPct = waccDecimal * 100;
+      document.getElementById('dcf-calc-wacc-badge').innerText = `WACC: ${waccPct.toFixed(2)}%`;
+
+      // Gordon Growth Validation
+      const gDecimal = termGrowth / 100;
+      if (tvMethod === 'gordon' && gDecimal >= waccDecimal) {
+        errEl.innerText = `Terminal Growth Rate (${termGrowth}%) must be strictly lower than WACC (${waccPct.toFixed(2)}%) to avoid infinite or negative valuation.`;
+        errEl.classList.remove('hidden');
+        return;
+      }
+
+      // Forecast 5 Years
+      const forecast = DcfEngine.forecast5Years({
+        baseRevenue: baseRev,
+        revGrowthPct: revGrowth,
+        ebitdaMarginPct: ebitdaMargin,
+        dnaAnnual: dna,
+        taxRatePct: taxRate,
+        capexAnnual: capex,
+        nwcAnnual: nwc
+      });
+
+      // Terminal Value Calculation
+      const finalYearFcf = forecast[forecast.length - 1].fcf;
+      const finalYearEbitda = forecast[forecast.length - 1].ebitda;
+
+      let terminalValue = 0;
+      if (tvMethod === 'gordon') {
+        terminalValue = DcfEngine.calculateGordonTV(finalYearFcf, waccDecimal, gDecimal);
+      } else {
+        terminalValue = DcfEngine.calculateExitTV(finalYearEbitda, exitMult);
+      }
+
+      // DCF Valuation Run
+      const valResult = DcfEngine.runValuation(forecast, waccDecimal, terminalValue, netDebt);
+
+      const pvFcfPct = valResult.enterpriseValue > 0 ? ((valResult.pvOfFcf / valResult.enterpriseValue) * 100).toFixed(1) : 0;
+      const pvTvPct = valResult.enterpriseValue > 0 ? ((valResult.pvOfTV / valResult.enterpriseValue) * 100).toFixed(1) : 0;
+
+      // Update State
+      AppState.dcf = {
+        baseRev,
+        revGrowth,
+        ebitdaMargin,
+        dna,
+        taxRate,
+        capex,
+        nwc,
+        costEquity: ke,
+        costDebt: kd,
+        eqVal,
+        debtVal,
+        tvMethod,
+        terminalGrowth: termGrowth,
+        exitMultiple: exitMult,
+        netDebt,
+        wacc: waccDecimal,
+        pvOfFcf: valResult.pvOfFcf,
+        pvOfTv: valResult.pvOfTV,
+        enterpriseValue: valResult.enterpriseValue,
+        equityValue: valResult.equityValue,
+        pvFcfPct,
+        pvTvPct
+      };
+
+      // Update Summary Cards
+      document.getElementById('res-dcf-pv-fcf').innerText = `₹${Math.round(valResult.pvOfFcf).toLocaleString('en-IN')} Cr`;
+      document.getElementById('res-dcf-pv-fcf-pct').innerText = `${pvFcfPct}% of Enterprise Value`;
+      document.getElementById('res-dcf-pv-tv').innerText = `₹${Math.round(valResult.pvOfTV).toLocaleString('en-IN')} Cr`;
+      document.getElementById('res-dcf-pv-tv-pct').innerText = `${pvTvPct}% of Enterprise Value`;
+      document.getElementById('res-dcf-ev').innerText = `₹${Math.round(valResult.enterpriseValue).toLocaleString('en-IN')} Cr`;
+      document.getElementById('res-dcf-equity-val').innerText = `₹${Math.round(valResult.equityValue).toLocaleString('en-IN')} Cr`;
+
+      // Render Forecast Table
+      renderDcfForecastTable(baseRev, ebitdaMargin, dna, forecast, valResult.discountedFcfs);
+
+      // Render Sensitivity Matrix
+      renderDcfSensitivity(finalYearFcf, waccDecimal, gDecimal, valResult.pvOfFcf);
+
+      renderLiveAiContext();
+    }
+
+    function renderDcfForecastTable(baseRev, baseMargin, baseDna, forecast, discountedList) {
+      const tbody = document.getElementById('dcf-forecast-tbody');
+      tbody.innerHTML = '';
+
+      const baseEbitda = baseRev * (baseMargin / 100);
+      const baseEbit = baseEbitda - baseDna;
+
+      const rows = [
+        { label: 'Revenue', base: baseRev, key: 'revenue', bold: true },
+        { label: 'EBITDA', base: baseEbitda, key: 'ebitda' },
+        { label: 'D&A', base: baseDna, key: 'dna' },
+        { label: 'EBIT', base: baseEbit, key: 'ebit' },
+        { label: 'Taxes', base: '—', key: 'tax' },
+        { label: 'NOPAT', base: '—', key: 'nopat' },
+        { label: 'Capex', base: '—', key: 'capex' },
+        { label: 'Δ NWC', base: '—', key: 'nwc' },
+        { label: 'Free Cash Flow (FCF)', base: '—', key: 'fcf', bold: true, highlight: true },
+        { label: 'PV of FCF', base: '—', custom: (i) => Math.round(discountedList[i].pv) }
+      ];
+
+      rows.forEach(r => {
+        const tr = document.createElement('tr');
+        if (r.highlight) tr.className = "bg-emerald-950/30 text-emerald-300 font-semibold";
+
+        let tdHtml = `<td class="py-1.5 px-2.5 text-left ${r.bold ? 'font-bold text-white' : 'text-gray-300'}">${r.label}</td>`;
+        tdHtml += `<td class="py-1.5 px-2.5 text-gray-500">${typeof r.base === 'number' ? Math.round(r.base).toLocaleString('en-IN') : r.base}</td>`;
+
+        forecast.forEach((f, idx) => {
+          let val = r.custom ? r.custom(idx) : Math.round(f[r.key]);
+          tdHtml += `<td class="py-1.5 px-2.5 ${r.bold ? 'font-bold text-white' : ''}">${val.toLocaleString('en-IN')}</td>`;
+        });
+
+        tr.innerHTML = tdHtml;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function renderDcfSensitivity(finalFcf, baseWaccDecimal, baseGrowthDecimal, pvOfFcf) {
+      const tbody = document.getElementById('dcf-sensitivity-tbody');
+      tbody.innerHTML = '';
+
+      const sens = DcfEngine.generateSensitivity(finalFcf, baseWaccDecimal, baseGrowthDecimal, pvOfFcf);
+
+      // Header Row (Growth Rates)
+      const headerTr = document.createElement('tr');
+      headerTr.className = "bg-gray-900 text-gray-400 text-[10px]";
+      headerTr.innerHTML = `<th class="py-2 px-2 text-left">WACC \\ g</th>` +
+        sens.growthList.map(g => `<th class="py-2 px-2">${(g * 100).toFixed(1)}%</th>`).join('');
+      tbody.appendChild(headerTr);
+
+      // Rows for each WACC
+      sens.matrix.forEach(row => {
+        const tr = document.createElement('tr');
+        tr.className = "border-t border-gray-800 text-[11px]";
+        let html = `<td class="py-1.5 px-2 font-semibold text-left text-gray-300 bg-gray-900/50">${(row.wacc * 100).toFixed(1)}%</td>`;
+
+        row.values.forEach(cell => {
+          if (!cell.valid || cell.ev === null) {
+            html += `<td class="py-1.5 px-2 text-red-400 bg-red-950/20 text-[10px]">N/A (g≥WACC)</td>`;
+          } else {
+            const isBase = Math.abs(row.wacc - baseWaccDecimal) < 0.0001 && Math.abs(cell.g - baseGrowthDecimal) < 0.0001;
+            html += `<td class="py-1.5 px-2 ${isBase ? 'bg-emerald-600/30 text-emerald-300 font-bold border border-emerald-500/50' : 'text-gray-300'}">₹${Math.round(cell.ev).toLocaleString('en-IN')}</td>`;
+          }
+        });
+
+        tr.innerHTML = html;
+        tbody.appendChild(tr);
+      });
+    }
+
+    /**
+     * AI ASSISTANT UI CONTROLLER
+     */
+    function renderLiveAiContext() {
+      const ctx = document.getElementById('ai-live-context-display');
+      if (!ctx) return;
+      ctx.innerHTML = `
+        <div class="text-blue-400 font-bold pb-1 border-b border-gray-800">MODULE 1: LOAN & EMI</div>
+        <div>Principal: ${FinanceFormat.currency(AppState.emi.principal)}</div>
+        <div>Rate: ${AppState.emi.rate}% | Tenure: ${AppState.emi.tenureMonths} mo</div>
+        <div>EMI: ${FinanceFormat.currency(AppState.emi.emi)}/mo</div>
+        <div>Total Interest: ${FinanceFormat.currency(AppState.emi.totalInterest)} (${AppState.emi.interestRatio}%)</div>
+
+        <div class="text-emerald-400 font-bold pt-2 pb-1 border-b border-gray-800">MODULE 2: TVM (PV/FV)</div>
+        <div>Mode: ${AppState.tvm.mode} | Freq: ${AppState.tvm.frequency}</div>
+        <div>Amount: ${FinanceFormat.currency(AppState.tvm.amount)} @ ${AppState.tvm.rate}%</div>
+        <div>Calculated: ${FinanceFormat.currency(AppState.tvm.result)}</div>
+
+        <div class="text-amber-400 font-bold pt-2 pb-1 border-b border-gray-800">MODULE 3: DCF VALUATION</div>
+        <div>WACC: ${FinanceFormat.percent(AppState.dcf.wacc * 100)}</div>
+        <div>PV of 5-Yr FCF: ₹${Math.round(AppState.dcf.pvOfFcf).toLocaleString('en-IN')} Cr (${AppState.dcf.pvFcfPct}%)</div>
+        <div>PV of Terminal: ₹${Math.round(AppState.dcf.pvOfTv).toLocaleString('en-IN')} Cr (${AppState.dcf.pvTvPct}%)</div>
+        <div class="text-emerald-300 font-bold">Enterprise Value: ₹${Math.round(AppState.dcf.enterpriseValue).toLocaleString('en-IN')} Cr</div>
+      `;
+    }
+
+    function askAiPrompt(promptText) {
+      document.getElementById('ai-query-input').value = promptText;
+      sendAiMessage();
+    }
+
+    async function sendAiMessage() {
+      const input = document.getElementById('ai-query-input');
+      const text = input.value.trim();
+      if (!text) return;
+
+      const chatBox = document.getElementById('ai-chat-messages');
+
+      // User Bubble
+      const userDiv = document.createElement('div');
+      userDiv.className = "flex items-start justify-end gap-3";
+      userDiv.innerHTML = `
+        <div class="bg-blue-600 rounded-xl p-3 text-xs text-white max-w-[85%] leading-relaxed">
+          ${escapeHtml(text)}
+        </div>
+      `;
+      chatBox.appendChild(userDiv);
+      input.value = '';
+      chatBox.scrollTop = chatBox.scrollHeight;
+
+      // Loading Indicator
+      const loadingDiv = document.createElement('div');
+      loadingDiv.className = "flex items-start gap-3";
+      loadingDiv.id = "ai-loading-bubble";
+      loadingDiv.innerHTML = `
+        <div class="w-7 h-7 rounded-lg bg-emerald-600 text-white flex items-center justify-center font-bold text-xs shrink-0">AI</div>
+        <div class="bg-gray-900 border border-gray-800 rounded-xl p-3 text-xs text-gray-400">
+          Reasoning over financial figures...
+        </div>
+      `;
+      chatBox.appendChild(loadingDiv);
+      chatBox.scrollTop = chatBox.scrollHeight;
+
+      let answer = "";
+      const proxyUrl = localStorage.getItem('ai_proxy_endpoint');
+
+      if (proxyUrl && proxyUrl.startsWith('http')) {
+        try {
+          const resp = await fetch(proxyUrl, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': localStorage.getItem('ai_proxy_token') || ''
+            },
+            body: JSON.stringify({
+              prompt: text,
+              context: AppState
+            })
+          });
+          const data = await resp.json();
+          answer = data.reply || data.response || "No response received from proxy endpoint.";
+        } catch (e) {
+          answer = `[Proxy Failed: Falling back to local engine] \n\n` + AiAssistantEngine.generateLocalResponse(text, AppState);
+        }
+      } else {
+        // Deterministic local reasoning engine
+        await new Promise(r => setTimeout(r, 250)); // smooth micro-delay
+        answer = AiAssistantEngine.generateLocalResponse(text, AppState);
+      }
+
+      // Remove loading indicator
+      const loader = document.getElementById('ai-loading-bubble');
+      if (loader) loader.remove();
+
+      // Assistant Bubble
+      const aiDiv = document.createElement('div');
+      aiDiv.className = "flex items-start gap-3";
+      aiDiv.innerHTML = `
+        <div class="w-7 h-7 rounded-lg bg-emerald-600 text-white flex items-center justify-center font-bold text-xs shrink-0">AI</div>
+        <div class="bg-gray-900 border border-gray-800 rounded-xl p-3 text-xs text-gray-200 max-w-[85%] leading-relaxed whitespace-pre-line">
+          ${escapeHtml(answer)}
+        </div>
+      `;
+      chatBox.appendChild(aiDiv);
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    function escapeHtml(unsafe) {
+      return unsafe
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    function toggleApiSettingsModal() {
+      const modal = document.getElementById('api-modal');
+      modal.classList.toggle('hidden');
+      if (!modal.classList.contains('hidden')) {
+        document.getElementById('ai-proxy-endpoint').value = localStorage.getItem('ai_proxy_endpoint') || '';
+        document.getElementById('ai-proxy-token').value = localStorage.getItem('ai_proxy_token') || '';
+      }
+    }
+
+    function saveApiSettings() {
+      const endpoint = document.getElementById('ai-proxy-endpoint').value.trim();
+      const token = document.getElementById('ai-proxy-token').value.trim();
+      localStorage.setItem('ai_proxy_endpoint', endpoint);
+      localStorage.setItem('ai_proxy_token', token);
+      toggleApiSettingsModal();
+    }
+
+    /**
+     * DEMO DATA LOADER
+     * Sets realistic illustrative assumptions clearly labelled as non-actual data.
+     */
+    function loadDemoData() {
+      // 1. EMI Demo
+      document.getElementById('emi-principal').value = 1000000;
+      document.getElementById('emi-rate').value = 10.0;
+      document.getElementById('emi-tenure').value = 5;
+      document.getElementById('emi-tenure-unit').value = 'years';
+      document.getElementById('emi-prepayment').value = 2500;
+
+      // 2. TVM Demo
+      document.getElementById('tvm-mode').value = 'pv-lump';
+      document.getElementById('tvm-amount').value = 100000;
+      document.getElementById('tvm-rate').value = 10.0;
+      document.getElementById('tvm-periods').value = 5;
+      document.getElementById('tvm-frequency').value = 'annual';
+
+      // 3. DCF Demo
+      document.getElementById('dcf-base-rev').value = 1000;
+      document.getElementById('dcf-growth').value = 10.0;
+      document.getElementById('dcf-ebitda-margin').value = 20.0;
+      document.getElementById('dcf-dna').value = 40;
+      document.getElementById('dcf-tax-rate').value = 25.0;
+      document.getElementById('dcf-capex').value = 50;
+      document.getElementById('dcf-nwc').value = 20;
+      document.getElementById('dcf-ke').value = 12.0;
+      document.getElementById('dcf-kd').value = 7.0;
+      document.getElementById('dcf-eq-val').value = 700;
+      document.getElementById('dcf-debt-val').value = 300;
+      document.getElementById('dcf-term-growth').value = 3.0;
+      document.getElementById('dcf-net-debt').value = 150;
+
+      // Execute Calculations Across Modules
+      handleEmiCalculate();
+      handleTvmCalculate();
+      handleDcfCalculate();
+
+      // Show disclaimer
+      const banner = document.getElementById('demo-disclaimer-banner');
+      banner.classList.remove('hidden');
+    }
+
+    // Initialize on window load
+    window.onload = function() {
+      handleEmiCalculate();
+      handleTvmCalculate();
+      handleDcfCalculate();
+      renderLiveAiContext();
+    };
+  </script>
+</body>
+</html>
